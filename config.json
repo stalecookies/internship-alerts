@@ -1,0 +1,8 @@
+{
+  "location_scope": "US",
+  "simplify_2027": true,
+  "greenhouse": {},
+  "lever": {},
+  "ashby": {},
+  "max_alerts_per_cycle": 50
+}

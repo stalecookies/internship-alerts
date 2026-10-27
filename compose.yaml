@@ -1,0 +1,9 @@
+services:
+  alerts:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    environment:
+      DATABASE_PATH: /data/seen_jobs.sqlite3
