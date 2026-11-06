@@ -86,9 +86,42 @@ CATEGORIES: list[tuple[str, int, list[tuple[str, str]]]] = [
         ("optical engineering", r"\boptical (?:engineering|hardware|devices?)\b"),
         ("optoelectronics", r"\boptoelectronics?\b"),
     ]),
+    ("Embedded AI / Edge ML", 0x22A6B3, [
+        ("embedded AI", r"\bembedded\s+(?:AI|artificial intelligence)\b"),
+        ("embedded ML", r"\bembedded\s+(?:ML|machine learning)\b"),
+        ("edge AI", r"\bedge\s+(?:AI|artificial intelligence)\b"),
+        ("edge ML", r"\bedge\s+(?:ML|machine learning)\b"),
+        ("TinyML", r"\btiny\s*-?\s*ML\b"),
+        ("on-device AI", r"\bon[- ]device\s+(?:AI|ML|machine learning|inference)\b"),
+        ("AI accelerator", r"\b(?:AI|ML|neural(?:\s+network)?)\s+accelerator\b"),
+        ("NPU", r"\bNPUs?\b|\bneural processing units?\b"),
+        ("edge inference", r"\bedge\s+inference\b"),
+        ("inference optimization", r"\binference\s+(?:optimization|acceleration)\b"),
+    ]),
+    ("Machine Learning / AI", 0x4F8FE8, [
+        ("machine learning", r"\bmachine[ -]learning\b"),
+        ("ML engineering", r"\bML\s+(?:engineer(?:ing)?|research(?:er)?)\b"),
+        ("AI/ML", r"\bAI[ /-]+ML\b|\bML[ /-]+AI\b"),
+        ("artificial intelligence", r"\bartificial intelligence\b"),
+        ("AI engineering", r"\bAI\s+(?:engineer(?:ing)?|research(?:er)?|scientist|software)\b"),
+        ("deep learning", r"\bdeep[ -]learning\b"),
+        ("computer vision", r"\bcomputer[ -]vision\b"),
+        ("NLP", r"\bNLP\b|\bnatural[ -]language processing\b"),
+        ("generative AI", r"\bgenerative\s+AI\b|\bGenAI\b"),
+        ("LLM", r"\bLLMs?\b|\blarge language models?\b"),
+        ("reinforcement learning", r"\breinforcement learning\b"),
+        ("MLOps", r"\bML[- ]?Ops\b"),
+        ("applied scientist", r"\bapplied (?:scientist|science)\b"),
+        ("neural networks", r"\bneural networks?\b"),
+    ]),
 ]
 COMPILED = [(name, color, [(term, re.compile(pattern, re.I)) for term, pattern in pairs])
             for name, color, pairs in CATEGORIES]
+# A new matching family needs a one-time baseline on already-running installations.
+# Otherwise older ML listings would be reported as newly posted on upgrade.
+ML_CATEGORIES = {"Embedded AI / Edge ML", "Machine Learning / AI"}
+ML_BASELINE_VERSION = "ml-ai-2026-11-v1"
+
 SEASON = re.compile(r"\b(?:spring|summer|fall|autumn|winter)\s*20\d{2}\b", re.I)
 
 
@@ -247,7 +280,7 @@ def classify(job: Job) -> tuple[str, int, int, list[str]] | None:
     if not INTERNSHIP.search(job.title):
         return None
     # Score prioritizes title specificity over generic description matches.
-    best: tuple[int, int, str, int, list[str]] | None = None
+    best: tuple[int, int, int, str, int, list[str]] | None = None
     for category, color, terms in COMPILED:
         title_hits = [term for term, rex in terms if rex.search(job.title)]
         description_hits = [term for term, rex in terms if rex.search(job.description[:12000])]
@@ -258,8 +291,11 @@ def classify(job: Job) -> tuple[str, int, int, list[str]] | None:
         if not title_hits and len(description_hits) < 2:
             continue
         score = min(10, 2 + 2 * len(title_hits) + min(3, len(description_hits)))
-        rank = (score, len(title_hits), category, color, matches)
-        if best is None or rank[:2] > best[:2]:
+        # Prefer a specifically named embedded-AI role over a generic embedded
+        # hit when both classifications have equal keyword scores.
+        specificity = 1 if category == "Embedded AI / Edge ML" else 0
+        rank = (score, len(title_hits), specificity, category, color, matches)
+        if best is None or rank[:3] > best[:3]:
             best = rank
     if best is None:
         return None
@@ -275,7 +311,7 @@ def classify(job: Job) -> tuple[str, int, int, list[str]] | None:
             elif pattern.search(job.description[:12000]):
                 desc_matches.append(term)
     ordered = [term for _, term in sorted(title_matches)] + desc_matches
-    return best[2], best[3], best[0], list(dict.fromkeys(ordered))[:5]
+    return best[3], best[4], best[0], list(dict.fromkeys(ordered))[:5]
 
 
 def canonical_url(url: str) -> str:
@@ -399,6 +435,24 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
             LOG.warning("Unable to poll %s: %s", source_name, exc)
             continue
         first_success = not state.is_initialized(source_name)
+        ml_baseline_key = f"category-baseline:{ML_BASELINE_VERSION}:{source_name}"
+        # Existing users already have a source initialized, so bootstrap normally
+        # would notify about hundreds of older ML jobs the old classifier missed.
+        # Record the new categories before the normal scan, once per source.
+        # This does NOT interfere with any already-monitored hardware categories.
+        if not dry_run and bootstrap == "skip_existing" and not state.is_initialized(ml_baseline_key):
+            baselined = 0
+            for job in postings:
+                if us_only and not is_us_location(job.location):
+                    continue
+                label = classify(job)
+                if label is not None and label[0] in ML_CATEGORIES:
+                    key = job_key(job)
+                    if not state.is_seen(key):
+                        state.mark(key)
+                        baselined += 1
+            state.initialize(ml_baseline_key)
+            LOG.info("%s: baselined %d existing ML/embedded-AI matches", source_name, baselined)
         matched = 0
         for job in postings:
             if us_only and not is_us_location(job.location):

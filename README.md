@@ -1,6 +1,14 @@
 # Embedded / RTL / Hardware Internship Discord Alerts
 
-A Python alert service that polls publicly available internship sources, filters for embedded/firmware, digital design/RTL/FPGA, ASIC/semiconductor, circuits/hardware, signal integrity/RF and photonics, and posts Discord **embeds** with colored left borders. It recognizes internships and co-ops. It **does not filter by internship season, graduation year, GPA, citizenship, or degree requirements**. The default configuration **only alerts for United States locations**, including explicitly US-based remote jobs. A location marked merely `Remote` or missing a region is skipped to avoid international notifications.
+A Python alert service that polls publicly available internship sources, filters for embedded/firmware, digital design/RTL/FPGA, ASIC/semiconductor, circuits/hardware, signal integrity/RF, photonics, machine learning/AI and embedded AI/edge ML, and posts Discord **embeds** with colored left borders. It recognizes internships and co-ops. It **does not filter by internship season, graduation year, GPA, citizenship, or degree requirements**. The default configuration **only alerts for United States locations**, including explicitly US-based remote jobs. A location marked merely `Remote` or missing a region is skipped to avoid international notifications.
+
+## Machine learning and embedded AI alerts
+
+This edition adds two notification categories, **Machine Learning / AI** and **Embedded AI / Edge ML**. Titles such as `Machine Learning Intern`, `AI/ML Engineering Intern`, `Computer Vision Intern`, `Embedded AI Intern`, `Edge AI Co-op`, and `TinyML Intern` now qualify. The existing hardware, firmware, RTL, and semiconductor filters remain active. The U.S.-only restriction is unchanged.
+
+**Important for existing deployments:** On the first successful scan after this update, the bot quietly marks already-listed jobs in the new AI/ML categories as seen, source by source. Subsequent unseen jobs trigger alerts. This prevents an initial flood of older listings. The state database at `state/seen_jobs.sqlite3` must be preserved when updating the repository. This is a one-time classification migration; it does not delete old state or suppress new postings in the older categories.
+
+Discord displays a security confirmation for external application links. A webhook cannot bypass Discord's warning; use **Trust This Domain** only for application sites you recognize. Discord may ask again for a different domain. The bot continues to provide direct job links.
 
 ## Current source coverage
 

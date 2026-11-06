@@ -1,9 +1,10 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from bot import Job, State, classify, embed, job_key, display_date, canonical_url, extract_term, is_us_location
+from bot import Job, State, classify, embed, job_key, display_date, canonical_url, extract_term, is_us_location, run_cycle, ML_BASELINE_VERSION
 
 
 class BotTests(unittest.TestCase):
@@ -62,6 +63,52 @@ class BotTests(unittest.TestCase):
         self.assertFalse(is_us_location("London, UK"))
         self.assertFalse(is_us_location("Remote"))
         self.assertFalse(is_us_location(""))
+
+    def test_machine_learning_intern(self):
+        for title in (
+            "Machine Learning Engineer Intern", "AI/ML Research Intern",
+            "Deep Learning Intern", "Computer Vision Intern",
+            "Generative AI Intern", "Applied Scientist Intern",
+            "NLP Intern", "MLOps Intern",
+        ):
+            with self.subTest(title=title):
+                label = classify(Job("Test", "ai", "X", title, "Austin, TX", "https://example.com/ml"))
+                self.assertIsNotNone(label)
+                self.assertEqual(label[0], "Machine Learning / AI")
+
+    def test_embedded_ai_intern(self):
+        for title in (
+            "Embedded AI Intern", "Embedded ML Co-op", "TinyML Intern",
+            "Edge AI Engineering Intern", "AI Accelerator Design Intern",
+            "On-device Inference Intern",
+        ):
+            with self.subTest(title=title):
+                label = classify(Job("Test", "edge", "X", title, "Remote - US", "https://example.com/edge"))
+                self.assertIsNotNone(label)
+                self.assertEqual(label[0], "Embedded AI / Edge ML")
+
+    def test_new_ml_categories_baseline_but_do_not_suppress_existing_categories(self):
+        state = State(":memory:")
+        state.initialize("Simplify 2027")  # The bot has already been running.
+        ml_job = Job("Simplify", "m1", "ML Co", "Machine Learning Intern", "Boston, MA", "https://example.com/ml1")
+        hardware_job = Job("Simplify", "h1", "HW Co", "RTL Design Intern", "Boston, MA", "https://example.com/hw1")
+        with patch("bot.sources", return_value=[("Simplify 2027", lambda: iter([ml_job, hardware_job]))]), \
+             patch("bot.discord_send") as send:
+            count = run_cycle({"location_scope": "US"}, state, object())
+        self.assertEqual(count, 1)
+        self.assertEqual(send.call_count, 1)
+        self.assertTrue(state.is_seen(job_key(ml_job)))
+        self.assertTrue(state.is_initialized(f"category-baseline:{ML_BASELINE_VERSION}:Simplify 2027"))
+        new_ml = Job("Simplify", "m2", "ML Co", "Machine Learning Intern", "Boston, MA", "https://example.com/ml2")
+        with patch("bot.sources", return_value=[("Simplify 2027", lambda: iter([ml_job, new_ml]))]), \
+             patch("bot.discord_send") as send:
+            count = run_cycle({"location_scope": "US"}, state, object())
+        self.assertEqual(count, 1)
+        self.assertEqual(send.call_count, 1)
+        self.assertTrue(state.is_seen(job_key(new_ml)))
+
+    def test_non_intern_ai_excluded(self):
+        self.assertIsNone(classify(Job("Test", "x", "X", "Senior Machine Learning Engineer", "CA", "https://example.com/x")))
 
     def test_invalid_date_unknown(self):
         self.assertEqual(display_date("unknown"), "Not provided")
