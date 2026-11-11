@@ -126,7 +126,7 @@ ML_BASELINE_VERSION = "embedded-ai-hybrid-2026-11-v2"
 # hardware scope in the title or concrete device-side work in the description.
 ML_SIGNAL = re.compile(
     r"\b(?:machine[ -]learning|ML|AI|artificial intelligence|deep[ -]learning|"
-    r"computer[ -]vision|NLP|natural[ -]language processing|generative AI|GenAI|"
+    r"computer[ -]vision|NLP|Tiny[ -]?ML|natural[ -]language processing|generative AI|GenAI|"
     r"LLMs?|large language models?|reinforcement learning|MLOps|"
     r"applied scientist|neural networks?|inference)\b", re.I
 )
