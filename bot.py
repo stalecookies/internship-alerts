@@ -97,8 +97,8 @@ CATEGORIES: list[tuple[str, int, list[tuple[str, str]]]] = [
         ("NPU", r"\bNPUs?\b|\bneural processing units?\b"),
         ("edge inference", r"\bedge\s+inference\b"),
         ("inference optimization", r"\binference\s+(?:optimization|acceleration)\b"),
-    ]),
-    ("Machine Learning / AI", 0x4F8FE8, [
+        # Generic ML phrases are valid ONLY when is_hybrid_ml() also finds
+        # embedded hardware / on-device deployment in the role.
         ("machine learning", r"\bmachine[ -]learning\b"),
         ("ML engineering", r"\bML\s+(?:engineer(?:ing)?|research(?:er)?)\b"),
         ("AI/ML", r"\bAI[ /-]+ML\b|\bML[ /-]+AI\b"),
@@ -119,8 +119,31 @@ COMPILED = [(name, color, [(term, re.compile(pattern, re.I)) for term, pattern i
             for name, color, pairs in CATEGORIES]
 # A new matching family needs a one-time baseline on already-running installations.
 # Otherwise older ML listings would be reported as newly posted on upgrade.
-ML_CATEGORIES = {"Embedded AI / Edge ML", "Machine Learning / AI"}
-ML_BASELINE_VERSION = "ml-ai-2026-11-v1"
+ML_CATEGORIES = {"Embedded AI / Edge ML"}
+ML_BASELINE_VERSION = "embedded-ai-hybrid-2026-11-v2"
+
+# A generic ML title is not enough to alert. It must have explicit embedded/
+# hardware scope in the title or concrete device-side work in the description.
+ML_SIGNAL = re.compile(
+    r"\b(?:machine[ -]learning|ML|AI|artificial intelligence|deep[ -]learning|"
+    r"computer[ -]vision|NLP|natural[ -]language processing|generative AI|GenAI|"
+    r"LLMs?|large language models?|reinforcement learning|MLOps|"
+    r"applied scientist|neural networks?|inference)\b", re.I
+)
+EMBEDDED_ML_TITLE = re.compile(
+    r"\b(?:embedded|firmware|microcontrollers?|MCUs?|RTOS|FreeRTOS|Zephyr|"
+    r"FPGA|ASIC|RTL|SoC|hardware|silicon|NPUs?|neural processing units?|"
+    r"robot(?:ics)?|sensors?|IoT|DSP|on[- ]device|Tiny[ -]?ML|"
+    r"edge[- ](?:AI|ML|inference)|(?:AI|ML)\s+accelerator)\b", re.I
+)
+EMBEDDED_ML_DESCRIPTION = re.compile(
+    r"\b(?:on[- ]device|on[- ]chip|tiny\s*-?\s*ml|"
+    r"embedded\s+(?:AI|ML|machine learning|inference|vision|devices?|systems?|Linux)|"
+    r"edge\s+(?:AI|ML|machine learning|inference|devices?)|"
+    r"microcontrollers?|MCUs?|FreeRTOS|Zephyr|TensorFlow Lite Micro|"
+    r"TFLite Micro|Jetson|Coral TPU|NPUs?|neural processing units?|"
+    r"robot(?:ics)?|IoT\s+(?:devices?|sensors?)|FPGA|ASIC)\b", re.I
+)
 
 SEASON = re.compile(r"\b(?:spring|summer|fall|autumn|winter)\s*20\d{2}\b", re.I)
 
@@ -181,6 +204,16 @@ class Job:
     posted: str = ""  # ISO date or YYYY-MM-DD; omitted when publication date unknown.
     term: str = ""
     description: str = ""
+
+
+def is_hybrid_ml(job: Job) -> bool:
+    """Require actual embedded/hardware scope when an internship mentions ML."""
+    description = job.description[:12000]
+    has_ml = bool(ML_SIGNAL.search(job.title) or ML_SIGNAL.search(description))
+    return has_ml and bool(
+        EMBEDDED_ML_TITLE.search(job.title)
+        or EMBEDDED_ML_DESCRIPTION.search(description)
+    )
 
 
 def fetch_json(session: requests.Session, url: str, **kwargs: Any) -> Any:
@@ -279,9 +312,16 @@ def extract_term(text: str) -> str:
 def classify(job: Job) -> tuple[str, int, int, list[str]] | None:
     if not INTERNSHIP.search(job.title):
         return None
+    hybrid_ml = is_hybrid_ml(job)
+    # Never report a pure ML/AI title merely because its description happens
+    # to mention a hardware team or a generic engineering keyword.
+    if ML_SIGNAL.search(job.title) and not hybrid_ml:
+        return None
     # Score prioritizes title specificity over generic description matches.
     best: tuple[int, int, int, str, int, list[str]] | None = None
     for category, color, terms in COMPILED:
+        if category == "Embedded AI / Edge ML" and not hybrid_ml:
+            continue
         title_hits = [term for term, rex in terms if rex.search(job.title)]
         description_hits = [term for term, rex in terms if rex.search(job.description[:12000])]
         matches = list(dict.fromkeys(title_hits + description_hits))
@@ -303,7 +343,9 @@ def classify(job: Job) -> tuple[str, int, int, list[str]] | None:
     # in the title (e.g. "silicon photonics reliability" from the example).
     title_matches: list[tuple[int, str]] = []
     desc_matches: list[str] = []
-    for _, _, terms in COMPILED:
+    for category, _, terms in COMPILED:
+        if category == "Embedded AI / Edge ML" and not hybrid_ml:
+            continue
         for term, pattern in terms:
             match = pattern.search(job.title)
             if match:
