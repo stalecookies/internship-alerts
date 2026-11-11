@@ -64,7 +64,7 @@ class BotTests(unittest.TestCase):
         self.assertFalse(is_us_location("Remote"))
         self.assertFalse(is_us_location(""))
 
-    def test_machine_learning_intern(self):
+    def test_pure_machine_learning_is_excluded(self):
         for title in (
             "Machine Learning Engineer Intern", "AI/ML Research Intern",
             "Deep Learning Intern", "Computer Vision Intern",
@@ -73,24 +73,33 @@ class BotTests(unittest.TestCase):
         ):
             with self.subTest(title=title):
                 label = classify(Job("Test", "ai", "X", title, "Austin, TX", "https://example.com/ml"))
-                self.assertIsNotNone(label)
-                self.assertEqual(label[0], "Machine Learning / AI")
+                self.assertIsNone(label)
 
     def test_embedded_ai_intern(self):
         for title in (
             "Embedded AI Intern", "Embedded ML Co-op", "TinyML Intern",
             "Edge AI Engineering Intern", "AI Accelerator Design Intern",
-            "On-device Inference Intern",
+            "On-device Inference Intern", "Machine Learning Firmware Intern",
+            "FPGA Machine Learning Intern",
         ):
             with self.subTest(title=title):
                 label = classify(Job("Test", "edge", "X", title, "Remote - US", "https://example.com/edge"))
                 self.assertIsNotNone(label)
                 self.assertEqual(label[0], "Embedded AI / Edge ML")
 
+    def test_ml_requires_device_side_scope(self):
+        pure = Job("Test", "ml", "X", "Machine Learning Intern", "Austin, TX",
+                   "https://example.com/ml", description="Build LLMs, recommendation systems, and data pipelines")
+        self.assertIsNone(classify(pure))
+        hybrid = Job("Test", "edge", "X", "Machine Learning Intern", "Austin, TX",
+                     "https://example.com/edge",
+                     description="Deploy optimized inference models on microcontrollers using TensorFlow Lite Micro.")
+        self.assertEqual(classify(hybrid)[0], "Embedded AI / Edge ML")
+
     def test_new_ml_categories_baseline_but_do_not_suppress_existing_categories(self):
         state = State(":memory:")
-        state.initialize("Simplify 2027")  # The bot has already been running.
-        ml_job = Job("Simplify", "m1", "ML Co", "Machine Learning Intern", "Boston, MA", "https://example.com/ml1")
+        state.initialize("Simplify 2027")
+        ml_job = Job("Simplify", "m1", "ML Co", "Embedded AI Intern", "Boston, MA", "https://example.com/ml1")
         hardware_job = Job("Simplify", "h1", "HW Co", "RTL Design Intern", "Boston, MA", "https://example.com/hw1")
         with patch("bot.sources", return_value=[("Simplify 2027", lambda: iter([ml_job, hardware_job]))]), \
              patch("bot.discord_send") as send:
@@ -99,13 +108,13 @@ class BotTests(unittest.TestCase):
         self.assertEqual(send.call_count, 1)
         self.assertTrue(state.is_seen(job_key(ml_job)))
         self.assertTrue(state.is_initialized(f"category-baseline:{ML_BASELINE_VERSION}:Simplify 2027"))
-        new_ml = Job("Simplify", "m2", "ML Co", "Machine Learning Intern", "Boston, MA", "https://example.com/ml2")
+        new_ml = Job("Simplify", "m2", "ML Co", "Embedded AI Intern", "Boston, MA", "https://example.com/ml2")
         with patch("bot.sources", return_value=[("Simplify 2027", lambda: iter([ml_job, new_ml]))]), \
              patch("bot.discord_send") as send:
             count = run_cycle({"location_scope": "US"}, state, object())
         self.assertEqual(count, 1)
         self.assertEqual(send.call_count, 1)
-        self.assertTrue(state.is_seen(job_key(new_ml)))
+        self.assertTrue(state.is_seen(job_key(new_ml))
 
     def test_non_intern_ai_excluded(self):
         self.assertIsNone(classify(Job("Test", "x", "X", "Senior Machine Learning Engineer", "CA", "https://example.com/x")))
