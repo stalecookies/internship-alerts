@@ -1,14 +1,14 @@
 # Embedded / RTL / Hardware Internship Discord Alerts
 
-A Python alert service that polls publicly available internship sources, filters for embedded/firmware, digital design/RTL/FPGA, ASIC/semiconductor, circuits/hardware, signal integrity/RF, photonics, machine learning/AI and embedded AI/edge ML, and posts Discord **embeds** with colored left borders. It recognizes internships and co-ops. It **does not filter by internship season, graduation year, GPA, citizenship, or degree requirements**. The default configuration **only alerts for United States locations**, including explicitly US-based remote jobs. A location marked merely `Remote` or missing a region is skipped to avoid international notifications.
+A Python alert service that polls publicly available internship sources, filters for embedded/firmware, digital design/RTL/FPGA, ASIC/semiconductor, circuits/hardware, signal integrity/RF, photonics and embedded AI/edge ML (not standalone machine learning), and posts Discord **embeds** with colored left borders. It recognizes internships and co-ops. It **does not filter by internship season, graduation year, GPA, citizenship, or degree requirements**. The default configuration **only alerts for United States locations**, including explicitly US-based remote jobs. A location marked merely `Remote` or missing a region is skipped to avoid international notifications.
 
-## Machine learning and embedded AI alerts
+## Embedded AI and hardware-ML alerts
 
-This edition adds two notification categories, **Machine Learning / AI** and **Embedded AI / Edge ML**. Titles such as `Machine Learning Intern`, `AI/ML Engineering Intern`, `Computer Vision Intern`, `Embedded AI Intern`, `Edge AI Co-op`, and `TinyML Intern` now qualify. The existing hardware, firmware, RTL, and semiconductor filters remain active. The U.S.-only restriction is unchanged.
+Only AI and ML internships with explicit embedded, edge-device, firmware, microcontroller, robotics, or hardware acceleration scope qualify. Examples include `Embedded AI Intern`, `TinyML Intern`, `Edge AI Intern`, `Machine Learning Firmware Intern`, `AI Accelerator Design Intern`, and `Machine Learning Intern` with a concrete on-device inference or MCU deployment description. Pure `Machine Learning Intern`, `NLP Intern`, `Generative AI Intern`, and data-science roles without device-side work are excluded.
 
-**Important for existing deployments:** On the first successful scan after this update, the bot quietly marks already-listed jobs in the new AI/ML categories as seen, source by source. Subsequent unseen jobs trigger alerts. This prevents an initial flood of older listings. The state database at `state/seen_jobs.sqlite3` must be preserved when updating the repository. This is a one-time classification migration; it does not delete old state or suppress new postings in the older categories.
+Existing hardware, firmware, RTL, semiconductor, RF, and photonics filters are unchanged. US-only location restrictions and Discord webhook configuration are unchanged. The new embedded AI category baseline version causes previously unseen existing hybrid AI listings to be recorded without flooding your channel on the first successful scan after this update. Future newly discovered listings trigger alerts. Keep `state/seen_jobs.sqlite3` intact. The filter uses title and available descriptions, so the Simplify feed's title-only data can miss vaguely titled hybrid jobs.
 
-Discord displays a security confirmation for external application links. A webhook cannot bypass Discord's warning; use **Trust This Domain** only for application sites you recognize. Discord may ask again for a different domain. The bot continues to provide direct job links.
+Discord's external-link warning cannot be disabled by the bot. Use **Trust This Domain** only for sites you recognize.
 
 ## Current source coverage
 
