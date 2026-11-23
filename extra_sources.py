@@ -26,14 +26,14 @@ APPLYGUY_URL = (
 )
 WORKDAY_TERMS = (
     "firmware", "embedded", "hardware", "electrical",
-    "silicon", "RTL", "intern", "co-op",
+    "silicon", "RTL",
 )
-WORKDAY_PAGES_PER_TERM = 2  # 20 jobs per page; targeted rather than exhaustive
-WORKDAY_DETAIL_CAP = 8
+WORKDAY_PAGES_PER_TERM = 1  # 20 jobs per page; targeted rather than exhaustive
+WORKDAY_DETAIL_CAP = 5
 
 
 def _get(session: requests.Session, url: str, **kwargs: Any) -> requests.Response:
-    response = session.get(url, timeout=(5, 18), **kwargs)
+    response = session.get(url, timeout=(5, 12), **kwargs)
     response.raise_for_status()
     return response
 
