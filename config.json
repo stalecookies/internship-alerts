@@ -1,8 +1,47 @@
 {
   "location_scope": "US",
   "simplify_2027": true,
-  "greenhouse": {},
-  "lever": {},
-  "ashby": {},
+  "hardware_2027": true,
+  "applyguy_2027": true,
+  "company_poll_minutes": 120,
+  "greenhouse": {
+    "SpaceX": "spacex",
+    "Anduril": "andurilindustries",
+    "Rivian": "rivianautomotive",
+    "Boston Dynamics": "bostondynamics",
+    "Zipline": "zipline",
+    "Blue Origin": "blueorigin",
+    "Relativity Space": "relativityspace",
+    "Hudson River Trading": "hudsonrivertrading",
+    "DRW": "drw",
+    "Cerebras": "cerebrassystems",
+    "Groq": "groq",
+    "Redwood Materials": "redwoodmaterials",
+    "Sonos": "sonos",
+    "Insulet": "insuletcorp"
+  },
+  "lever": {
+    "Cruise": "getcruise",
+    "Waabi": "waabi"
+  },
+  "ashby": {
+    "Base Power": "base-power",
+    "Terranova": "Terranova",
+    "Etched": "Etched",
+    "WindBorne Systems": "windborne-systems",
+    "Reflect Orbital": "reflect-orbital",
+    "Rivian and VW Technologies": "rivianvw.tech",
+    "H3X Technologies": "h3x-technologies",
+    "Fab2": "Fab2"
+  },
+  "workable": {
+    "RISE Robotics": "rise-robotics"
+  },
+  "workday": {
+    "Marvell": "https://marvell.wd1.myworkdayjobs.com/marvellcareers",
+    "SNC": "https://snc.wd1.myworkdayjobs.com/SNC_External_Career_Site",
+    "Itron": "https://itron.wd5.myworkdayjobs.com/Early_Careers",
+    "Allegion": "https://allegion.wd5.myworkdayjobs.com/careers"
+  },
   "max_alerts_per_cycle": 50
 }
