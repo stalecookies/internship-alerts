@@ -22,6 +22,10 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
 from dotenv import load_dotenv
+from extra_sources import (
+    hardware_internships_jobs, applyguy_jobs,
+    workable_jobs, workday_jobs,
+)
 
 LOG = logging.getLogger("internship-alerts")
 ROOT = Path(__file__).resolve().parent
@@ -409,6 +413,7 @@ class State:
         self.connection = sqlite3.connect(path)
         self.connection.execute("CREATE TABLE IF NOT EXISTS seen (job_key TEXT PRIMARY KEY, first_seen TEXT NOT NULL)")
         self.connection.execute("CREATE TABLE IF NOT EXISTS initialized (source TEXT PRIMARY KEY)")
+        self.connection.execute("CREATE TABLE IF NOT EXISTS source_polls (source TEXT PRIMARY KEY, checked_at INTEGER NOT NULL)")
         self.connection.commit()
 
     def is_seen(self, key: str) -> bool:
@@ -416,6 +421,21 @@ class State:
 
     def mark(self, key: str) -> None:
         self.connection.execute("INSERT OR IGNORE INTO seen VALUES (?, datetime('now'))", (key,))
+        self.connection.commit()
+
+    def due(self, source: str, minutes: int) -> bool:
+        if minutes <= 0:
+            return True
+        record = self.connection.execute(
+            "SELECT checked_at FROM source_polls WHERE source=?", (source,)
+        ).fetchone()
+        return record is None or int(time.time()) - record[0] >= minutes * 60
+
+    def note_polled(self, source: str) -> None:
+        self.connection.execute(
+            "INSERT OR REPLACE INTO source_polls VALUES (?, ?)",
+            (source, int(time.time())),
+        )
         self.connection.commit()
 
     def is_initialized(self, source: str) -> bool:
@@ -454,12 +474,20 @@ def discord_send(payload: dict[str, Any], session: requests.Session) -> None:
 def sources(config: dict[str, Any], session: requests.Session) -> Iterator[tuple[str, Any]]:
     if config.get("simplify_2027", True):
         yield "Simplify 2027", lambda: simplify_jobs(session)
+    if config.get("hardware_2027"):
+        yield "Hardware 2027", lambda: hardware_internships_jobs(session, Job)
+    if config.get("applyguy_2027"):
+        yield "ApplyGuy 2027", lambda: applyguy_jobs(session, Job)
     for company, slug in (config.get("greenhouse") or {}).items():
         yield f"Greenhouse:{slug}", lambda c=company, s=slug: greenhouse_jobs(session, c, s)
     for company, slug in (config.get("lever") or {}).items():
         yield f"Lever:{slug}", lambda c=company, s=slug: lever_jobs(session, c, s)
     for company, slug in (config.get("ashby") or {}).items():
         yield f"Ashby:{slug}", lambda c=company, s=slug: ashby_jobs(session, c, s)
+    for company, slug in (config.get("workable") or {}).items():
+        yield f"Workable:{slug}", lambda c=company, s=slug: workable_jobs(session, c, s, Job)
+    for company, board_url in (config.get("workday") or {}).items():
+        yield f"Workday:{company}", lambda c=company, u=board_url: workday_jobs(session, c, u, Job)
 
 
 def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *, dry_run: bool = False) -> int:
@@ -470,6 +498,14 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
     for source_name, loader in sources(config, session):
         if alerts >= cap:
             break
+        interval = (
+            int(config.get("company_poll_minutes", 120))
+            if source_name.startswith(("Greenhouse:", "Lever:", "Ashby:",
+                                       "Workable:", "Workday:")) else 0
+        )
+        # Do not repeat company-wide searches every 15 minutes.
+        if not dry_run and not state.due(source_name, interval):
+            continue
         try:
             # Fetch completely before marking source initialized, so incomplete fetches don't silently lose data.
             postings = list(loader())
@@ -526,6 +562,7 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
                 break
         if not dry_run:
             state.initialize(source_name)
+            state.note_polled(source_name)
         LOG.info("%s: %d listings, %d matched", source_name, len(postings), matched)
     return alerts
 
