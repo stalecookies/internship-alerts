@@ -114,7 +114,7 @@ class BotTests(unittest.TestCase):
             count = run_cycle({"location_scope": "US"}, state, object())
         self.assertEqual(count, 1)
         self.assertEqual(send.call_count, 1)
-        self.assertTrue(state.is_seen(job_key(new_ml))
+        self.assertTrue(state.is_seen(job_key(new_ml)))
 
     def test_non_intern_ai_excluded(self):
         self.assertIsNone(classify(Job("Test", "x", "X", "Senior Machine Learning Engineer", "CA", "https://example.com/x")))
