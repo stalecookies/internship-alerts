@@ -162,7 +162,7 @@ def workday_jobs(
 ) -> Iterator[Any]:
     """Bounded searches against a public Workday careers site's CXS endpoint.
 
-    Uses narrow search terms and up to two pages per term. Workday does NOT
+    Uses narrow search terms and one results page per term. Workday does NOT
     publish a stable public API; sites may reject or change these requests.
     """
     host, tenant, site = _workday_board(board_url)
@@ -176,7 +176,7 @@ def workday_jobs(
                     "appliedFacets": {}, "limit": 20,
                     "offset": page * 20, "searchText": term,
                 },
-                timeout=(5, 18),
+                timeout=(5, 12),
                 headers={"Accept": "application/json"},
             )
             response.raise_for_status()
