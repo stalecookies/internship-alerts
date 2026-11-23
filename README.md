@@ -17,7 +17,9 @@ Discord's external-link warning cannot be disabled by the bot. Use **Trust This 
 - **Lever** company boards, using the public Lever Postings API (paginated).
 - **Ashby** company boards, using the public Ashby Job Postings API.
 
-For Greenhouse, Lever, and Ashby, **only companies explicitly included in `config.json` are monitored**. These ATS providers do not offer a public universal list of every company. Boards on Workday, LinkedIn, Handshake, proprietary career sites, etc. are **not monitored in this starter project**, except when a posting appears in the Simplify source. It cannot guarantee that every internship on the internet is found.
+The expanded bot also monitors **Hardware Internships 2027** (markdown internship table) and **ApplyGuy 2027** (JSON feed of open internships, using the company's original job URL).
+
+Company-specific boards are enabled for **Greenhouse, Lever, Ashby, Workable, and Workday** in `config.json`. Workable uses a publicly exposed careers widget; Workday uses a limited, best-effort CXS search for designated company career sites, not an official supported API. Workday boards may block automated access or change formats. The bot logs such errors and continues scanning other sources. LinkedIn, Handshake, and arbitrary company sites are not scraped directly. It cannot guarantee that every internship on the internet is found.
 
 ## Zero-cost cloud setup (recommended; laptop may be turned off)
 
@@ -43,7 +45,7 @@ Use GitHub Actions on a **public** GitHub repository. Standard GitHub-hosted run
 
 **Important free-hosting caveats:** GitHub Actions schedules can be delayed or occasionally dropped, and GitHub automatically disables a public repository's scheduled workflow after 60 days of repository inactivity. Check the Actions tab periodically, especially outside recruitment season. You can reactivate it there. When adding company feeds to `config.json`, commit the updated config to GitHub. Workflows require `contents: write` permission; if state persistence fails, check **Settings > Actions > General > Workflow permissions**. The seen-job database is committed to a public repository, but no Discord secrets or message contents are stored in it.
 
-**Coverage:** This starter version polls Simplify's public Summer 2027 feed and any individual ATS boards you configure. It does not discover every company's ATS board on its own and is not a guarantee of all U.S. internships. Add verified board identifiers in `config.json` to improve coverage and update yearly sources as future internship lists become available.
+**Coverage:** This version polls three public 2027 internship feeds and targeted ATS boards configured in `config.json`. It does not discover every company's ATS board on its own and is not a guarantee of all U.S. internships. Add verified board identifiers in `config.json` to improve coverage and update yearly sources as future internship lists become available.
 
 ## Quick start (macOS / Linux)
 
@@ -97,6 +99,18 @@ Replace the example labels and tokens with **real board identifiers** before run
 - `https://jobs.ashbyhq.com/BOARD_NAME`
 
 The service independently polls each configured company. New boards added later are baselined separately to avoid flooding the channel with old jobs.
+
+## Expanded-source scan schedule and costs
+
+- Simplify, Hardware Internships 2027, and ApplyGuy 2027 are fetched every scheduled scan (usually 15 minutes).
+- Greenhouse, Lever, Ashby, and Workable are checked every **120 minutes** by default, recorded in SQLite under `source_polls`.
+- Workday is checked every **240 minutes** by default, with limited title searches, at most 1 results page per search term and 5 job detail fetches per board.
+- All existing US-only, internship/co-op, embedded/hardware/RTL, and embedded-AI-only ML filters remain active.
+- Standard GitHub-hosted runners for public repositories do not incur runner-minute charges, but career sites may impose their own rate limits, and scheduled Actions may be delayed.
+- The workflow runs all unit tests before scanning, has a 15-minute job timeout, and writes scan timestamps to the existing SQLite state database.
+- No credentials are required for these public feeds. Do not switch to private-repo paid GitHub runners or premium job-data services without checking pricing.
+
+**Operations note:** Initial successful fetches of newly added sources only baseline existing listings. Alerts are sent for newly discovered matching postings on subsequent scans. If a board API fails, it remains uninitialized and can retry next cycle without causing a flood.
 
 ## Running continuously
 
