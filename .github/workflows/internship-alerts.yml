@@ -25,7 +25,7 @@ concurrency:
 jobs:
   poll:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Check out project and saved state
         uses: actions/checkout@v4
@@ -37,6 +37,9 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
+
+      - name: Check source parsing and existing filters
+        run: python -m unittest discover -s tests -v
 
       - name: Send test or check sources
         env:
