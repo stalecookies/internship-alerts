@@ -499,9 +499,11 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
         if alerts >= cap:
             break
         interval = (
+            int(config.get("workday_poll_minutes", 240))
+            if source_name.startswith("Workday:") else
             int(config.get("company_poll_minutes", 120))
             if source_name.startswith(("Greenhouse:", "Lever:", "Ashby:",
-                                       "Workable:", "Workday:")) else 0
+                                       "Workable:")) else 0
         )
         # Do not repeat company-wide searches every 15 minutes.
         if not dry_run and not state.due(source_name, interval):
