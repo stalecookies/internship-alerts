@@ -174,12 +174,39 @@ def scan(entry):
         error=type(e).__name__
         print(brand,"source error",error,flush=True)
     return brand,items,error
+def group_key(item):
+    u=urlsplit(item["url"])
+    return (item["retailer"],item["brand"],u.netloc,u.path.rstrip("/"),item["price"])
+
+def notify_group(items, events):
+    first=items[0]
+    name=re.sub(r",\s*"+re.escape(first["color"])+r",\s*Size\s+[^,]+$","",first["name"],flags=re.I)
+    colors={}
+    for item in items:
+        size={"medium":"M","large":"L","m":"M","l":"L"}.get(item["size"].lower(),item["size"])
+        colors.setdefault(item["color"],set()).add(size)
+    availability="; ".join(f"{color}: {', '.join(sorted(sizes))}" for color,sizes in sorted(colors.items()))
+    refs=sorted({reference for _,reference in events})
+    price=first["price"]
+    title="Price drop" if any(kind=="Price drop" for kind,_ in events) else "Current sale"
+    if len(refs)==1:
+        pricing=f"${refs[0]:.2f} → ${price:.2f} ({100*(1-price/refs[0]):.0f}% off)"
+    else:
+        pricing=f"Now ${price:.2f}; qualifying previous/list prices ${refs[0]:.2f}–${refs[-1]:.2f}"
+    msg=f"**{title} | {first['brand']} {name}**\n{first['retailer']} | {pricing}\nAvailable at this price: {availability}\n{first['url']}"
+    if len(msg)>2000:
+        msg=f"**{title} | {first['brand']} {name}**\n{pricing}\n{availability[:1200]}\n{first['url']}"
+    send(msg)
+    time.sleep(0.5)
+
 def main():
     if not os.environ.get("PARKA_DISCORD_WEBHOOK"):
         raise RuntimeError("Missing PARKA_DISCORD_WEBHOOK")
     old=json.loads(STATE.read_text()) if STATE.exists() else {}
     count=0
     health={}
+    groups={}
+    events={}
     if os.environ.get("PARKA_TEST_NOTIFICATION")=="true":
         send("Parka tracker: Discord delivery test successful.")
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -192,16 +219,19 @@ def main():
                 discount=100*(1-price/regular) if regular else 0
                 drop=bool(prev and price<prev["price"])
                 sale=discount>=20 and (not prev.get("sale_alerted") or drop)
+                group=group_key(item)
+                groups.setdefault(group,[]).append(item)
                 if drop or sale:
                     title="Price drop" if drop else "Current sale"
                     reference=prev["price"] if drop else regular
-                    pct=100*(1-price/reference)
-                    send(f'**{title} | {item["brand"]} {item["name"]}**\n{item["retailer"]} | ${reference:.2f} → ${price:.2f} ({pct:.0f}% off) | Size {item["size"]} | {item["color"]}\n{item["url"]}')
-                    time.sleep(0.5)
+                    events.setdefault(group,[]).append((title,reference))
                 item["sale_alerted"]=bool(sale or (prev.get("sale_alerted") and discount>=20))
                 old[key]=item
+    for group,changes in events.items():
+        notify_group(groups[group],changes)
+    print(f"{len(events)} consolidated deal notifications",flush=True)
     working=sum(x["status"]=="working" for x in health.values())
-    report={"checked_at":datetime.now(timezone.utc).isoformat(),"working":working,"total":len(health),"sources":health}
+    report={"checked_at":datetime.now(timezone.utc).isoformat(),"working":working,"total":len(health),"verified_variants":count,"unique_retailer_price_groups":len(groups),"notifications":len(events),"sources":health}
     STATE.parent.mkdir(exist_ok=True)
     Path("state/parka-health.json").write_text(json.dumps(report,indent=2))
     summary=os.environ.get("GITHUB_STEP_SUMMARY")
