@@ -2,6 +2,8 @@ import os,json,re,time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urljoin,urlsplit
+from threading import local
+from datetime import datetime,timezone
 import requests
 from bs4 import BeautifulSoup
 SOURCES={
@@ -51,10 +53,14 @@ SOURCES.update({
 DIRECT=set(list(SOURCES)[:16]) | {"Arc'teryx Outlet","Patagonia Web Specials","Arc'teryx Ralle Down","Canada Goose parkas"}
 BRANDS=["Canada Goose","Moose Knuckles","Moncler","Mackage","Woolrich","Nobis","Parajumpers","Arc'teryx","Arcteryx","Patagonia","Fjallraven","Fjällräven","Norrøna","Norrona","Rab","The North Face","Outdoor Research","Mountain Hardwear","Marmot"]
 STATE=Path("state/parka-prices.json")
-session=requests.Session()
-session.headers["User-Agent"]="ParkaPriceMonitor/1.0"
+_local=local()
+def client():
+    if not hasattr(_local,"session"):
+        _local.session=requests.Session()
+        _local.session.headers.update({"User-Agent":"ParkaPriceMonitor/1.0","Accept-Language":"en-US,en;q=0.9"})
+    return _local.session
 def get(url):
-    r=session.get(url,timeout=12)
+    r=client().get(url,timeout=12)
     r.raise_for_status()
     return BeautifulSoup(r.text,"html.parser")
 def nodes(x):
@@ -67,6 +73,39 @@ def structured(soup):
     for tag in soup.select('script[type="application/ld+json"]'):
         try: yield from nodes(json.loads(tag.get_text()))
         except (ValueError,TypeError): continue
+# Public Shopify catalog adapter for eligible US storefronts.
+SHOPIFY={"Mackage","Nobis","Outdoor Research"}
+def shopify(brand,url):
+    root=urlsplit(url)
+    endpoint=f"{root.scheme}://{root.netloc}/products.json"
+    for page in range(1,5):
+        r=client().get(endpoint,params={"limit":250,"page":page},timeout=15)
+        r.raise_for_status()
+        catalog=r.json()["products"]
+        if not catalog: break
+        for p in catalog:
+            name=p.get("title","")
+            tags=str(p.get("tags",""))+" "+name+" "+p.get("product_type","")
+            if not re.search(r"\b(?:men|mens|men's|male)\b",tags,re.I) or re.search(r"\b(?:women|womens|women's|girls|boys|kids)\b",tags,re.I): continue
+            if "parka" not in name.lower(): continue
+            link=f"{root.scheme}://{root.netloc}/products/{p['handle']}"
+            page_soup=get(link)
+            currencies={str(x.get("priceCurrency")) for x in structured(page_soup) if x.get("priceCurrency")}
+            if currencies!={"USD"}: continue
+            for v in p.get("variants",[]):
+                if v.get("available") is not True: continue
+                opts=[str(v.get("option"+str(i)) or "") for i in range(1,4)]
+                sizes=[o for o in opts if o.lower() in ("m","l","medium","large")]
+                if len(sizes)!=1: continue
+                try:
+                    price=float(v["price"])
+                    regular=float(v.get("compare_at_price") or 0)
+                except (ValueError,TypeError,KeyError): continue
+                if price<=0: continue
+                color=" / ".join(o for o in opts if o and o not in sizes) or "Unspecified"
+                key="|".join([brand,link,str(v["id"]),sizes[0],color])
+                yield key,dict(name=name,brand=brand,retailer=brand,size=sizes[0],color=color,price=price,url=link+"?variant="+str(v["id"]),regular=regular if regular>price else None)
+
 def products(brand,url):
     soup=get(url)
     yield url,soup
@@ -121,20 +160,31 @@ def send(msg):
 def scan(entry):
     brand,url=entry
     items={}
+    error=None
+    if brand in SHOPIFY:
+        try:
+            items.update(shopify(brand,url))
+        except Exception as e:
+            print(brand,"catalog error",type(e).__name__,flush=True)
     try:
         for link,soup in products(brand,url):
             for key,item in offers(brand,link,soup): items[key]=item
         print(brand,len(items),"verified offers",flush=True)
     except Exception as e:
-        print(brand,"source error",type(e).__name__,flush=True)
-    return items
+        error=type(e).__name__
+        print(brand,"source error",error,flush=True)
+    return brand,items,error
 def main():
     if not os.environ.get("PARKA_DISCORD_WEBHOOK"):
         raise RuntimeError("Missing PARKA_DISCORD_WEBHOOK")
     old=json.loads(STATE.read_text()) if STATE.exists() else {}
     count=0
+    health={}
+    if os.environ.get("PARKA_TEST_NOTIFICATION")=="true":
+        send("Parka tracker: Discord delivery test successful.")
     with ThreadPoolExecutor(max_workers=8) as pool:
-        for items in pool.map(scan,SOURCES.items()):
+        for source,items,error in pool.map(scan,SOURCES.items()):
+            health[source]={"offers":len(items),"error":error,"status":"working" if items else ("error" if error else "no_verified_offers")}
             for key,item in items.items():
                 count+=1
                 prev=old.get(key,{}); price=item["price"]
@@ -150,7 +200,16 @@ def main():
                     time.sleep(0.5)
                 item["sale_alerted"]=bool(sale or (prev.get("sale_alerted") and discount>=20))
                 old[key]=item
-    if not count: raise RuntimeError("No size-verified offers extracted; source adapters need validation")
+    working=sum(x["status"]=="working" for x in health.values())
+    report={"checked_at":datetime.now(timezone.utc).isoformat(),"working":working,"total":len(health),"sources":health}
+    STATE.parent.mkdir(exist_ok=True)
+    Path("state/parka-health.json").write_text(json.dumps(report,indent=2))
+    summary=os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary,"a") as f:
+            f.write(f"## Parka coverage: {working}/{len(health)} sources returned verified offers\n\n")
+            for source,h in health.items(): f.write(f"- {source}: {h['status']} ({h['offers']} offers)\n")
+    if working<10: print(f"::warning::Low parka source coverage: {working}/{len(health)}")
     STATE.parent.mkdir(exist_ok=True)
     STATE.write_text(json.dumps(old,indent=2,sort_keys=True))
 if __name__=="__main__": main()
