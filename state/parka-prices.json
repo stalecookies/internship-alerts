@@ -1,0 +1,34 @@
+{
+  "Arc'teryx|https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914|X000009914004|M|Black": {
+    "brand": "Arc'teryx",
+    "color": "Black",
+    "name": "Therme Down Parka Men's, Black, Size M",
+    "price": 900.0,
+    "size": "M",
+    "url": "https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914"
+  },
+  "Arc'teryx|https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914|X000009914005|L|Black": {
+    "brand": "Arc'teryx",
+    "color": "Black",
+    "name": "Therme Down Parka Men's, Black, Size L",
+    "price": 900.0,
+    "size": "L",
+    "url": "https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914"
+  },
+  "Arc'teryx|https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914|X000009914028|M|Dark Jade": {
+    "brand": "Arc'teryx",
+    "color": "Dark Jade",
+    "name": "Therme Down Parka Men's, Dark Jade, Size M",
+    "price": 900.0,
+    "size": "M",
+    "url": "https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914"
+  },
+  "Arc'teryx|https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914|X000009914029|L|Dark Jade": {
+    "brand": "Arc'teryx",
+    "color": "Dark Jade",
+    "name": "Therme Down Parka Men's, Dark Jade, Size L",
+    "price": 900.0,
+    "size": "L",
+    "url": "https://arcteryx.com/us/en/shop/mens/therme-down-parka-9914"
+  }
+}
