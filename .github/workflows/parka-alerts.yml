@@ -1,0 +1,33 @@
+name: Parka price alerts
+on:
+  schedule:
+    - cron: '13,43 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: parka-price-alerts
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests beautifulsoup4
+      - run: python -m py_compile parka_tracker.py
+      - run: python parka_tracker.py
+        env:
+          PARKA_DISCORD_WEBHOOK: ${{ secrets.PARKA_DISCORD_WEBHOOK }}
+      - name: Save price history
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add state/parka-prices.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update parka price history'
+          git pull --rebase origin main
+          git push origin HEAD:main
