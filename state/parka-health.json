@@ -1,0 +1,207 @@
+{
+  "checked_at": "2026-11-24T20:21:10.708374+00:00",
+  "working": 2,
+  "total": 40,
+  "sources": {
+    "Patagonia": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "The North Face": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Fjallraven": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Arc'teryx": {
+      "offers": 4,
+      "error": null,
+      "status": "working"
+    },
+    "Canada Goose": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Moose Knuckles": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Moncler": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Mackage": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Woolrich": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Nobis": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Parajumpers": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Rab": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Norr\u00f8na": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Outdoor Research": {
+      "offers": 16,
+      "error": null,
+      "status": "working"
+    },
+    "Mountain Hardwear": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Marmot": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "REI": {
+      "offers": 0,
+      "error": "ReadTimeout",
+      "status": "error"
+    },
+    "Backcountry": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "evo": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "CampSaver": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Public Lands": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Nordstrom": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Bloomingdale's": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Saks": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Neiman Marcus": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "SSENSE": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "MR PORTER": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Farfetch": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "END.": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Mytheresa": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Nordstrom Rack": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Saks OFF 5TH": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Sierra": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Arc'teryx Outlet": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Patagonia Web Specials": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "ShopStyle": {
+      "offers": 0,
+      "error": "ConnectionError",
+      "status": "error"
+    },
+    "Lyst": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Google Shopping": {
+      "offers": 0,
+      "error": null,
+      "status": "no_verified_offers"
+    },
+    "Arc'teryx Ralle Down": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    },
+    "Canada Goose parkas": {
+      "offers": 0,
+      "error": "HTTPError",
+      "status": "error"
+    }
+  }
+}
