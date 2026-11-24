@@ -1,7 +1,10 @@
 {
-  "checked_at": "2026-11-24T20:30:24.255458+00:00",
+  "checked_at": "2026-11-24T21:34:12.465770+00:00",
   "working": 2,
   "total": 40,
+  "verified_variants": 20,
+  "unique_retailer_price_groups": 5,
+  "notifications": 0,
   "sources": {
     "Patagonia": {
       "offers": 0,
@@ -125,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "SSENSE": {
       "offers": 0,
