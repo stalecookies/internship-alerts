@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-25T19:37:11.214373+00:00",
+  "checked_at": "2026-11-25T20:30:42.885889+00:00",
   "working": 2,
   "total": 40,
   "verified_variants": 20,
@@ -128,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": null,
-      "status": "no_verified_offers"
+      "error": "HTTPError",
+      "status": "error"
     },
     "SSENSE": {
       "offers": 0,
