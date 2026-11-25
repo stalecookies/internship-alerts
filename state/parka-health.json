@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-25T11:36:23.758038+00:00",
+  "checked_at": "2026-11-25T12:42:54.743251+00:00",
   "working": 2,
   "total": 40,
   "verified_variants": 20,
@@ -53,8 +53,8 @@
     },
     "Nobis": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "Parajumpers": {
       "offers": 0,
@@ -128,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "SSENSE": {
       "offers": 0,
