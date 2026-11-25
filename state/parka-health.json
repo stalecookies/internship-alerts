@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-25T10:39:10.647564+00:00",
+  "checked_at": "2026-11-25T11:36:23.758038+00:00",
   "working": 2,
   "total": 40,
   "verified_variants": 20,
@@ -53,8 +53,8 @@
     },
     "Nobis": {
       "offers": 0,
-      "error": null,
-      "status": "no_verified_offers"
+      "error": "HTTPError",
+      "status": "error"
     },
     "Parajumpers": {
       "offers": 0,
