@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-25T23:28:46.811558+00:00",
+  "checked_at": "2026-11-26T00:30:54.056219+00:00",
   "working": 2,
   "total": 40,
   "verified_variants": 20,
@@ -53,8 +53,8 @@
     },
     "Nobis": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "Parajumpers": {
       "offers": 0,
@@ -83,8 +83,8 @@
     },
     "Marmot": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "REI": {
       "offers": 0,
@@ -128,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "SSENSE": {
       "offers": 0,
