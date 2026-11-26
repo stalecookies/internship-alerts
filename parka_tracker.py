@@ -2,6 +2,8 @@ import os,json,re,time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urljoin,urlsplit
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from threading import local
 from datetime import datetime,timezone
 import requests
@@ -57,7 +59,8 @@ _local=local()
 def client():
     if not hasattr(_local,"session"):
         _local.session=requests.Session()
-        _local.session.headers.update({"User-Agent":"ParkaPriceMonitor/1.0","Accept-Language":"en-US,en;q=0.9"})
+        _local.session.headers.update({"User-Agent":"ParkaPriceMonitor/1.1","Accept-Language":"en-US,en;q=0.9","Accept":"text/html,application/json;q=0.9,*/*;q=0.8"})
+        _local.session.mount("https://", HTTPAdapter(max_retries=Retry(total=2, backoff_factor=1, status_forcelist=[429,500,502,503,504], allowed_methods=["GET"], respect_retry_after_header=False)))
     return _local.session
 def get(url):
     r=client().get(url,timeout=12)
@@ -109,24 +112,26 @@ def shopify(brand,url):
 def products(brand,url):
     soup=get(url)
     yield url,soup
-    if "/products/" in url or "/shop/mens/therme" in url: return
+    if any("Product" in ([p.get("@type")] if isinstance(p.get("@type"),str) else (p.get("@type") or [])) for p in structured(soup)): return
     links=set()
     for a in soup.select("a[href]"):
         u=urljoin(url,a["href"]).split("#")[0].split("?")[0]
         p=urlsplit(u)
-        if p.netloc!=urlsplit(url).netloc or "parka" not in p.path.lower(): continue
+        if p.netloc!=urlsplit(url).netloc: continue
+        if not re.search(r"parka|down.coat|down.jacket|3q|langford|expedition|chateau|therme|ralle|nuuk",p.path,re.I): continue
         if p.path.rstrip("/").split("/")[-1].lower() in ("parkas","mens-parkas","parka"): continue
         links.add(u)
-    for u in sorted(links)[:12]:
+    for u in sorted(links)[:30]:
         try:
             time.sleep(1)
             yield u,get(u)
-        except requests.RequestException as e: print(brand,type(e).__name__)
+        except requests.RequestException as e: print(brand,u,str(e),flush=True)
 def offers(brand,url,soup):
     for p in structured(soup):
         if "Product" not in ([p.get("@type")] if isinstance(p.get("@type"),str) else p.get("@type",[])): continue
         name=p.get("name","")
-        if not isinstance(name,str) or "parka" not in name.lower() or re.search(r"women|girls|kids|boys",name,re.I): continue
+        if not isinstance(name,str) or not re.search(r"parka|down coat|3q",name,re.I) or re.search(r"women|girls|kids|boys",name,re.I): continue
+        if not re.search(r"\b(?:men|mens|men\u2019s|men\x27s|male)\b",name+" "+url+" "+str(p.get("audience","")),re.I): continue
         brand_value=p.get("brand","")
         if isinstance(brand_value,dict): brand_value=brand_value.get("name","")
         actual=next((b for b in BRANDS if b.casefold()==str(brand_value).casefold() or re.search(r"\b"+re.escape(b)+r"\b",name,re.I)),None)
@@ -134,16 +139,18 @@ def offers(brand,url,soup):
         if not actual: continue
         size=p.get("size","")
         if isinstance(size,dict): size=size.get("name","")
-        if str(size).strip().lower() not in ("m","l","medium","large"): continue
         oo=p.get("offers",[])
         for o in oo if isinstance(oo,list) else [oo]:
             if not isinstance(o,dict) or str(o.get("availability","")).split("/")[-1]!="InStock" or o.get("priceCurrency")!="USD": continue
+            variant_size=o.get("size") or size
+            if isinstance(variant_size,dict): variant_size=variant_size.get("name","")
+            if str(variant_size).strip().lower() not in ("m","l","medium","large"): continue
             try: price=float(o["price"])
             except (KeyError,ValueError,TypeError): continue
             if price<=0: continue
             color=str(p.get("color","Unspecified"))
             link=urljoin(url,o.get("url") or p.get("url") or url)
-            key="|".join([brand,url,str(p.get("sku",name)),str(size),color])
+            key="|".join([brand,url,str(o.get("sku",p.get("sku",name))),str(variant_size),color])
             regular=None
             specs=o.get("priceSpecification",[])
             for spec in specs if isinstance(specs,list) else [specs]:
@@ -153,7 +160,7 @@ def offers(brand,url,soup):
                         candidate=float(spec["price"])
                         if candidate>price and spec.get("priceCurrency","USD")=="USD": regular=max(regular or 0,candidate)
                     except (KeyError,ValueError,TypeError): pass
-            yield key,dict(name=name,brand=actual,retailer=brand,size=str(size),color=color,price=price,url=link,regular=regular)
+            yield key,dict(name=name,brand=actual,retailer=brand,size=str(variant_size),color=color,price=price,url=link,regular=regular)
 def send(msg):
     r=requests.post(os.environ["PARKA_DISCORD_WEBHOOK"],json={"content":msg,"allowed_mentions":{"parse":[]}},timeout=20)
     if not r.ok: raise RuntimeError("Discord delivery failed: "+str(r.status_code))
@@ -165,13 +172,14 @@ def scan(entry):
         try:
             items.update(shopify(brand,url))
         except Exception as e:
-            print(brand,"catalog error",type(e).__name__,flush=True)
+            error=f"{type(e).__name__}: {e}"
+            print(brand,"catalog error",error,flush=True)
     try:
         for link,soup in products(brand,url):
             for key,item in offers(brand,link,soup): items[key]=item
         print(brand,len(items),"verified offers",flush=True)
     except Exception as e:
-        error=type(e).__name__
+        error=f"{type(e).__name__}: {e}"
         print(brand,"source error",error,flush=True)
     return brand,items,error
 def group_key(item):
