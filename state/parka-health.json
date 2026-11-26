@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-26T05:47:25.338735+00:00",
+  "checked_at": "2026-11-26T06:35:55.223894+00:00",
   "working": 3,
   "total": 40,
   "verified_variants": 28,
@@ -128,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.neimanmarcus.com/search.jsp?Ntt=mens%20parka",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "SSENSE": {
       "offers": 0,
