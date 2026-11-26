@@ -2,6 +2,8 @@ import os,json,re,time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urljoin,urlsplit
+from urllib.robotparser import RobotFileParser
+from xml.etree import ElementTree as ET
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from threading import local
@@ -109,10 +111,40 @@ def shopify(brand,url):
                 key="|".join([brand,link,str(v["id"]),sizes[0],color])
                 yield key,dict(name=name,brand=brand,retailer=brand,size=sizes[0],color=color,price=price,url=link+"?variant="+str(v["id"]),regular=regular if regular>price else None)
 
+def sitemap_products(url):
+    root=urlsplit(url)
+    origin=f"{root.scheme}://{root.netloc}"
+    robots=client().get(origin+"/robots.txt",timeout=8)
+    if robots.status_code!=200: return
+    rp=RobotFileParser()
+    rp.parse(robots.text.splitlines())
+    agent="ParkaPriceMonitor"
+    pending=rp.site_maps() or [origin+"/sitemap.xml"]
+    seen=set()
+    found=0
+    while pending and len(seen)<6 and found<10:
+        u=pending.pop(0)
+        if u in seen or urlsplit(u).netloc!=root.netloc or not rp.can_fetch(agent,u): continue
+        seen.add(u)
+        try:
+            res=client().get(u,timeout=8)
+            res.raise_for_status()
+            tree=ET.fromstring(res.content)
+        except (requests.RequestException,ET.ParseError): continue
+        for entry in tree:
+            loc=next((v.text for v in entry if v.tag.split("}")[-1]=="loc"),None)
+            if not loc or urlsplit(loc).netloc!=root.netloc: continue
+            if entry.tag.split("}")[-1]=="sitemap":
+                if re.search(r"product|men|sitemap",loc,re.I): pending.append(loc)
+            elif re.search(r"parka|3q|langford|therme|ralle|nuuk",urlsplit(loc).path,re.I) and not re.search(r"women|kids|girls|boys",loc,re.I) and rp.can_fetch(agent,loc):
+                yield loc
+                found+=1
+                if found>=10: return
+
 def products(brand,url):
     soup=get(url)
     yield url,soup
-    if any("Product" in ([p.get("@type")] if isinstance(p.get("@type"),str) else (p.get("@type") or [])) for p in structured(soup)): return
+    if any(True for _ in offers(brand,url,soup)): return
     links=set()
     for a in soup.select("a[href]"):
         u=urljoin(url,a["href"]).split("#")[0].split("?")[0]
@@ -126,8 +158,19 @@ def products(brand,url):
             time.sleep(1)
             yield u,get(u)
         except requests.RequestException as e: print(brand,u,str(e),flush=True)
-def offers(brand,url,soup):
+def product_records(soup):
     for p in structured(soup):
+        yield p
+        types=p.get("@type") or []
+        if "ProductGroup" not in ([types] if isinstance(types,str) else types): continue
+        variants=p.get("hasVariant") or []
+        for v in variants if isinstance(variants,list) else [variants]:
+            if not isinstance(v,dict): continue
+            inherited={k:p[k] for k in ("name","brand","audience","color") if k in p}
+            yield {**inherited,**v,"@type":"Product"}
+
+def offers(brand,url,soup):
+    for p in product_records(soup):
         if "Product" not in ([p.get("@type")] if isinstance(p.get("@type"),str) else p.get("@type",[])): continue
         name=p.get("name","")
         if not isinstance(name,str) or not re.search(r"parka|down coat|3q",name,re.I) or re.search(r"women|girls|kids|boys",name,re.I): continue
@@ -181,6 +224,15 @@ def scan(entry):
     except Exception as e:
         error=f"{type(e).__name__}: {e}"
         print(brand,"source error",error,flush=True)
+    if not items and brand in DIRECT and (not error or "404 Client Error" in error):
+        try:
+            for link in sitemap_products(url):
+                try:
+                    for key,item in offers(brand,link,get(link)): items[key]=item
+                except requests.RequestException as e:
+                    print(brand,"sitemap product",str(e),flush=True)
+        except Exception as e:
+            print(brand,"sitemap discovery",str(e),flush=True)
     return brand,items,error
 def group_key(item):
     u=urlsplit(item["url"])
