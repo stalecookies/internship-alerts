@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-11-26T05:16:18.976724+00:00",
-  "working": 2,
+  "checked_at": "2026-11-26T05:43:07.989320+00:00",
+  "working": 3,
   "total": 40,
-  "verified_variants": 20,
-  "unique_retailer_price_groups": 5,
+  "verified_variants": 28,
+  "unique_retailer_price_groups": 8,
   "notifications": 0,
   "sources": {
     "Patagonia": {
@@ -13,12 +13,12 @@
     },
     "The North Face": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.thenorthface.com/en-us/c/mens/mens-jackets-and-vests/mens-parkas-300775",
       "status": "error"
     },
     "Fjallraven": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.fjallraven.com/us/en-us/men/jackets/parkas/",
       "status": "error"
     },
     "Arc'teryx": {
@@ -33,17 +33,17 @@
     },
     "Moose Knuckles": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.mooseknucklescanada.com/us-en/men/outerwear/parkas",
       "status": "error"
     },
     "Moncler": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.moncler.com/en-us/men/outerwear/long-down-jackets",
       "status": "error"
     },
     "Mackage": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.mackage.com/collections/mens-parkas",
       "status": "error"
     },
     "Woolrich": {
@@ -58,7 +58,7 @@
     },
     "Parajumpers": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.parajumpers.it/us/en/men/outerwear/",
       "status": "error"
     },
     "Rab": {
@@ -67,9 +67,9 @@
       "status": "no_verified_offers"
     },
     "Norr\u00f8na": {
-      "offers": 0,
+      "offers": 8,
       "error": null,
-      "status": "no_verified_offers"
+      "status": "working"
     },
     "Outdoor Research": {
       "offers": 16,
@@ -88,17 +88,17 @@
     },
     "REI": {
       "offers": 0,
-      "error": "ReadTimeout",
+      "error": "ConnectionError: HTTPSConnectionPool(host='www.rei.com', port=443): Max retries exceeded with url: /search?q=mens+parka (Caused by ReadTimeoutError(\"HTTPSConnectionPool(host='www.rei.com', port=443): Read timed out. (read timeout=12)\"))",
       "status": "error"
     },
     "Backcountry": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.backcountry.com/search?q=mens%20parka",
       "status": "error"
     },
     "evo": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.evo.com/shop/clothing/jackets/parkas/mens",
       "status": "error"
     },
     "CampSaver": {
@@ -108,7 +108,7 @@
     },
     "Public Lands": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.publiclands.com/search/SearchDisplay?searchTerm=mens%20parka",
       "status": "error"
     },
     "Nordstrom": {
@@ -118,18 +118,18 @@
     },
     "Bloomingdale's": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.bloomingdales.com/shop/search?keyword=mens%20parka",
       "status": "error"
     },
     "Saks": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: HTTP Forbidden for url: https://www.saksfifthavenue.com/search?q=mens%20parka",
       "status": "error"
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "SSENSE": {
       "offers": 0,
@@ -138,12 +138,12 @@
     },
     "MR PORTER": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.mrporter.com/en-us/mens/clothing/coats-and-jackets/parkas",
       "status": "error"
     },
     "Farfetch": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.farfetch.com/shopping/men/parkas-2/items.aspx",
       "status": "error"
     },
     "END.": {
@@ -158,7 +158,7 @@
     },
     "Nordstrom Rack": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.nordstromrack.com/sr?keyword=mens%20parka",
       "status": "error"
     },
     "Saks OFF 5TH": {
@@ -168,7 +168,7 @@
     },
     "Sierra": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 403 Client Error: Forbidden for url: https://www.sierra.com/s~mens-parka/",
       "status": "error"
     },
     "Arc'teryx Outlet": {
@@ -183,27 +183,27 @@
     },
     "ShopStyle": {
       "offers": 0,
-      "error": "ConnectionError",
+      "error": "ConnectionError: HTTPSConnectionPool(host='www.shopstyle.com', port=443): Max retries exceeded with url: /browse/mens-coats?fts=parka (Caused by NameResolutionError(\"HTTPSConnection(host='www.shopstyle.com', port=443): Failed to resolve 'www.shopstyle.com' ([Errno -2] Name or service not known)\"))",
       "status": "error"
     },
     "Lyst": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.lyst.com/shop/mens-parkas/",
       "status": "error"
     },
     "Google Shopping": {
       "offers": 0,
-      "error": "HTTPError",
-      "status": "error"
+      "error": null,
+      "status": "no_verified_offers"
     },
     "Arc'teryx Ralle Down": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://arcteryx.com/us/en/shop/mens/ralle-down-parka",
       "status": "error"
     },
     "Canada Goose parkas": {
       "offers": 0,
-      "error": "HTTPError",
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.canadagoose.com/us/en/mens-parkas/",
       "status": "error"
     }
   }
