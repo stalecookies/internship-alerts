@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-26T04:07:00.218049+00:00",
+  "checked_at": "2026-11-26T05:16:18.976724+00:00",
   "working": 2,
   "total": 40,
   "verified_variants": 20,
@@ -128,8 +128,8 @@
     },
     "Neiman Marcus": {
       "offers": 0,
-      "error": null,
-      "status": "no_verified_offers"
+      "error": "HTTPError",
+      "status": "error"
     },
     "SSENSE": {
       "offers": 0,
@@ -193,8 +193,8 @@
     },
     "Google Shopping": {
       "offers": 0,
-      "error": null,
-      "status": "no_verified_offers"
+      "error": "HTTPError",
+      "status": "error"
     },
     "Arc'teryx Ralle Down": {
       "offers": 0,
