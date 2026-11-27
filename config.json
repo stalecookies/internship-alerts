@@ -17,24 +17,11 @@
     "Groq": "groq",
     "Redwood Materials": "redwoodmaterials",
     "Sonos": "sonos",
-    "Insulet": "insuletcorp",
-    "Rocket Lab": "rocketlab",
-    "Astranis": "astranis",
-    "Varda Space Industries": "vardaspace",
-    "Archer": "archer",
-    "Skydio": "skydio",
-    "Tenstorrent": "tenstorrent",
-    "PsiQuantum": "psiquantum",
-    "Samsara": "samsara",
-    "Applied Intuition": "appliedintuition",
-    "Neuralink": "neuralink"
+    "Insulet": "insuletcorp"
   },
   "lever": {
     "Cruise": "getcruise",
-    "Waabi": "waabi",
-    "Shield AI": "shieldai",
-    "Zoox": "zoox",
-    "Commonwealth Fusion Systems": "cfsenergy"
+    "Waabi": "waabi"
   },
   "ashby": {
     "Base Power": "base-power",
@@ -45,12 +32,7 @@
     "Rivian and VW Technologies": "rivianvw.tech",
     "H3X Technologies": "h3x-technologies",
     "Fab2": "Fab2",
-    "Cerebras": "cerebras",
-    "Form Energy": "formenergy",
-    "Antares": "antares",
-    "Radiant Industries": "radiant",
-    "CircuitHub": "circuithub",
-    "Apex Technology": "apex"
+    "Cerebras": "cerebras"
   },
   "workable": {
     "RISE Robotics": "rise-robotics"
@@ -62,5 +44,6 @@
     "Allegion": "https://allegion.wd5.myworkdayjobs.com/careers"
   },
   "max_alerts_per_cycle": 50,
-  "workday_poll_minutes": 720
+  "workday_poll_minutes": 720,
+  "the_muse": true
 }
