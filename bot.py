@@ -493,7 +493,54 @@ def muse_jobs(session: requests.Session) -> Iterator[Job]:
             break
 
 
+AGGREGATOR_TERMS = ("firmware", "embedded", "hardware", "electrical engineering", "FPGA", "ASIC", "semiconductor", "edge AI")
+
+def aggregator_jobs(session, provider):
+    for term in AGGREGATOR_TERMS:
+        for suffix in ("intern", "co-op"):
+            query = f"{term} {suffix}"
+            try:
+                if provider == "Adzuna":
+                    response = session.get("https://api.adzuna.com/v1/api/jobs/us/search/1",
+                        params={"app_id": os.environ["ADZUNA_APP_ID"], "app_key": os.environ["ADZUNA_APP_KEY"],
+                                "what": query, "results_per_page": 50, "sort_by": "date"},
+                        timeout=(5, 20))
+                    field = "results"
+                else:
+                    response = session.post("https://jooble.org/api/" + os.environ["JOOBLE_API_KEY"],
+                        json={"keywords": query, "location": "United States", "page": 1, "ResultOnPage": 50},
+                        timeout=(5, 20))
+                    field = "jobs"
+                if response.status_code != 200:
+                    raise ValueError(f"{provider} HTTP {response.status_code}")
+                items = response.json().get(field)
+                if not isinstance(items, list):
+                    raise ValueError(f"{provider}: invalid listings")
+            except requests.RequestException:
+                raise ValueError(f"{provider}: request failed") from None
+            for item in items:
+                if provider == "Adzuna":
+                    company = (item.get("company") or {}).get("display_name")
+                    location = (item.get("location") or {}).get("display_name")
+                    url = item.get("redirect_url")
+                    desc = item.get("description")
+                    posted = item.get("created")
+                else:
+                    company, location, url = item.get("company"), item.get("location"), item.get("link")
+                    desc, posted = item.get("snippet"), ""
+                title = item.get("title")
+                if title and url and url.startswith("https://"):
+                    yield Job(provider, str(item.get("id") or url), company or "Unknown",
+                              title, (location or "") + ", United States" if provider == "Adzuna" else location or "",
+                              url, posted or "", description=desc or "")
+            time.sleep(0.3)
+
+
 def sources(config: dict[str, Any], session: requests.Session) -> Iterator[tuple[str, Any]]:
+    if os.getenv("ADZUNA_APP_ID") and os.getenv("ADZUNA_APP_KEY"):
+        yield "Adzuna", lambda: aggregator_jobs(session, "Adzuna")
+    if os.getenv("JOOBLE_API_KEY"):
+        yield "Jooble", lambda: aggregator_jobs(session, "Jooble")
     if config.get("the_muse"):
         yield "The Muse", lambda: muse_jobs(session)
     if config.get("simplify_2027", True):
@@ -523,7 +570,7 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
         if alerts >= cap:
             break
         interval = (
-            360 if source_name == "The Muse" else
+            360 if source_name in ("The Muse", "Adzuna", "Jooble") else
             int(config.get("workday_poll_minutes", 240))
             if source_name.startswith("Workday:") else
             int(config.get("company_poll_minutes", 120))
