@@ -471,7 +471,31 @@ def discord_send(payload: dict[str, Any], session: requests.Session) -> None:
     raise RuntimeError("Discord rate limit retries exhausted")
 
 
+def muse_jobs(session: requests.Session) -> Iterator[Job]:
+    """Public multi-employer job search, bounded to ten pages."""
+    for page in range(10):
+        data = fetch_json(session, "https://www.themuse.com/api/public/jobs",
+                          params={"page": page, "level": "Internship"})
+        listings = data.get("results")
+        if not isinstance(listings, list):
+            raise ValueError("Unexpected The Muse response")
+        for item in listings:
+            title = item.get("name") or ""
+            url = (item.get("refs") or {}).get("landing_page") or ""
+            if not title or not url.startswith("https://"):
+                continue
+            locations = ", ".join(x.get("name", "") for x in item.get("locations", []))
+            yield Job("The Muse", str(item.get("id") or url),
+                      (item.get("company") or {}).get("name") or "Unknown",
+                      title, locations, url, item.get("publication_date") or "",
+                      description=item.get("contents") or "")
+        if not listings or page + 1 >= int(data.get("page_count", 10)):
+            break
+
+
 def sources(config: dict[str, Any], session: requests.Session) -> Iterator[tuple[str, Any]]:
+    if config.get("the_muse"):
+        yield "The Muse", lambda: muse_jobs(session)
     if config.get("simplify_2027", True):
         yield "Simplify 2027", lambda: simplify_jobs(session)
     if config.get("hardware_2027"):
@@ -499,6 +523,7 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
         if alerts >= cap:
             break
         interval = (
+            360 if source_name == "The Muse" else
             int(config.get("workday_poll_minutes", 240))
             if source_name.startswith("Workday:") else
             int(config.get("company_poll_minutes", 120))
