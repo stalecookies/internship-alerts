@@ -513,6 +513,8 @@ def run_cycle(config: dict[str, Any], state: State, session: requests.Session, *
             postings = list(loader())
         except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
             LOG.warning("Unable to poll %s: %s", source_name, exc)
+            if not dry_run:
+                state.note_polled(source_name)
             continue
         first_success = not state.is_initialized(source_name)
         ml_baseline_key = f"category-baseline:{ML_BASELINE_VERSION}:{source_name}"
