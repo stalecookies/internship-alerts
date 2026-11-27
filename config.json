@@ -11,18 +11,30 @@
     "Boston Dynamics": "bostondynamics",
     "Zipline": "zipline",
     "Blue Origin": "blueorigin",
-    "Relativity Space": "relativityspace",
+    "Relativity Space": "relativity",
     "Hudson River Trading": "hudsonrivertrading",
     "DRW": "drw",
-    "Cerebras": "cerebrassystems",
     "Groq": "groq",
     "Redwood Materials": "redwoodmaterials",
     "Sonos": "sonos",
-    "Insulet": "insuletcorp"
+    "Insulet": "insuletcorp",
+    "Rocket Lab": "rocketlab",
+    "Astranis": "astranis",
+    "Varda Space Industries": "vardaspace",
+    "Archer": "archer",
+    "Skydio": "skydio",
+    "Tenstorrent": "tenstorrent",
+    "PsiQuantum": "psiquantum",
+    "Samsara": "samsara",
+    "Applied Intuition": "appliedintuition",
+    "Neuralink": "neuralink"
   },
   "lever": {
     "Cruise": "getcruise",
-    "Waabi": "waabi"
+    "Waabi": "waabi",
+    "Shield AI": "shieldai",
+    "Zoox": "zoox",
+    "Commonwealth Fusion Systems": "cfsenergy"
   },
   "ashby": {
     "Base Power": "base-power",
@@ -32,7 +44,13 @@
     "Reflect Orbital": "reflect-orbital",
     "Rivian and VW Technologies": "rivianvw.tech",
     "H3X Technologies": "h3x-technologies",
-    "Fab2": "Fab2"
+    "Fab2": "Fab2",
+    "Cerebras": "cerebras",
+    "Form Energy": "formenergy",
+    "Antares": "antares",
+    "Radiant Industries": "radiant",
+    "CircuitHub": "circuithub",
+    "Apex Technology": "apex"
   },
   "workable": {
     "RISE Robotics": "rise-robotics"
@@ -43,5 +61,6 @@
     "Itron": "https://itron.wd5.myworkdayjobs.com/Early_Careers",
     "Allegion": "https://allegion.wd5.myworkdayjobs.com/careers"
   },
-  "max_alerts_per_cycle": 50
+  "max_alerts_per_cycle": 50,
+  "workday_poll_minutes": 720
 }
